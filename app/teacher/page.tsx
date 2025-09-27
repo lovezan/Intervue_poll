@@ -137,6 +137,8 @@ export default function TeacherPage() {
 
   // Live Results Screen (after asking question)
   if (showLiveResults && state?.currentQuestion) {
+    const questionNumber = (state?.history?.length || 0) + 1
+    
     return (
       <main className="min-h-dvh bg-background text-foreground flex items-start justify-center">
         <div className="w-full max-w-5xl px-6 pt-14 pb-28">
@@ -145,7 +147,7 @@ export default function TeacherPage() {
             <button
               onClick={() => setShowHistory(true)}
               // Changed rounded-2xl to rounded-full for a pill shape
-              className="flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium text-white"
+              className="flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium text-white transition-all duration-200 hover:opacity-90"
               // Applied the solid background color using the style attribute
               style={{ background: "#8F64E1" }}
             >
@@ -156,46 +158,65 @@ export default function TeacherPage() {
         </div>
 
           <div className="mx-auto mt-8 w-full max-w-2xl">
-            <h2 className="text-2xl font-semibold mb-4 ">Question</h2>
+            <div className="flex items-center justify-start gap-4 mb-2">
+              <h2 className="text-xl font-semibold">Question {questionNumber}</h2>
+            </div>
             <div className="rounded-lg border overflow-hidden">
               <div className="bg-gradient-to-r from-gray-800 to-gray-900 px-4 py-3 font-semibold text-white">{state.currentQuestion.text}</div>
               <div className="p-4 space-y-3">
-                {state.currentQuestion.options.map((opt, index) => (
-                  <div key={opt.id} className="flex items-center gap-3">
-                    <span className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm font-semibold">
-                      {index + 1}
-                    </span>
-                    <div className="flex-1">
-                      <div className="text-sm font-medium mb-2">{opt.text}</div>
-              <div className="w-full h-8 rounded-lg bg-muted relative overflow-hidden">
-                <div
-                  className="h-full transition-[width] duration-500 ease-out"
-                          style={{
-                            width: `${
-                              totalVotes(state.currentQuestion!) > 0
-                                ? Math.round((opt.votes / totalVotes(state.currentQuestion!)) * 100)
-                                : 0
-                            }%`,
-                            background: "#5a66d1",
-                          }}
-                        />
-                        <span className="absolute inset-0 flex items-center justify-end pr-2 text-sm font-medium">
-                          {totalVotes(state.currentQuestion!) > 0
-                            ? Math.round((opt.votes / totalVotes(state.currentQuestion!)) * 100)
-                            : 0}
-                          %
+                {state.currentQuestion.options.map((opt, index) => {
+                  const percentage = totalVotes(state.currentQuestion!) > 0 
+                    ? Math.round((opt.votes / totalVotes(state.currentQuestion!)) * 100) 
+                    : 0
+                  const isCorrect = opt.isCorrect
+                  
+                  // Determine text colors based on percentage and position
+                  const optionTextColor = percentage === 0 ? "#1f2937" : "white" // Dark gray for 0%, white for others
+                  const percentageTextColor = percentage === 0 ? "#1f2937" : (percentage === 100 ? "white" : "#1f2937")
+                  
+                  return (
+                    <div key={opt.id} className="transform transition-all duration-300 hover:scale-[1.01]">
+                      <button
+                        disabled={true}
+                        className="w-full rounded-lg border-0 px-4 py-3 text-left transition-all duration-1000 ease-out flex items-center gap-3 cursor-default shadow-sm hover:shadow-md"
+                        style={{
+                          background: `linear-gradient(90deg, ${isCorrect ? brand.purple : "#9ca3af"} ${percentage}%, #f3f4f6 ${percentage}%)`,
+                          border: "none",
+                        }}
+                      >
+                        <span 
+                          className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-sm font-semibold flex-shrink-0 transition-transform duration-200 hover:scale-105"
+                          style={{ color: "#374151" }}
+                        >
+                          {index + 1}
                         </span>
-                      </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <span 
+                              className="font-medium transition-colors duration-300"
+                              style={{ color: optionTextColor }}
+                            >
+                              {opt.text}
+                            </span>
+                            <span 
+                              className="text-sm font-medium ml-2 flex-shrink-0 transition-colors duration-300"
+                              style={{ color: percentageTextColor }}
+                            >
+                              {percentage}%
+                            </span>
+                          </div>
+                        </div>
+                      </button>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
             
             <div className="mt-6 flex justify-end">
               <button
                 onClick={goBackToQuestionCreation}
-                className="h-12 px-6 rounded-full text-white font-semibold flex items-center gap-2"
+                className="h-12 px-6 rounded-full text-white font-semibold flex items-center gap-2 transition-all duration-200 hover:opacity-90 hover:scale-105 transform"
                 style={{ background: `linear-gradient(90deg, ${brand.purple}, ${brand.purpleDark})` }}
               >
                 <span className="text-xl">+</span>

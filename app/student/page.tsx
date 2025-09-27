@@ -118,7 +118,7 @@ export default function StudentPage() {
       <Shell>
         <HeaderBadge />
         <h1 className="mt-10 text-4xl font-semibold text-center">
-          Let’s <span className="font-extrabold">Get Started</span>
+          Let's <span className="font-extrabold">Get Started</span>
         </h1>
       {/* Descriptive Text Container */}
         <div className="text-center mx-auto mt-4 mb-12 max-w-lg">
@@ -209,42 +209,75 @@ export default function StudentPage() {
             </div>
           )}
         </div>
-        <div className="rounded-lg border overflow-hidden">
+        <div className={cn(
+          "rounded-lg overflow-hidden transition-all duration-200",
+          !answered && selectedOption && `border-2 border-[#5a66d1]`,
+          !answered && !selectedOption && "border border-gray-200",
+          answered && "border"
+        )}>
           <div className="bg-gradient-to-r from-gray-800 to-gray-900 px-4 py-3 font-semibold text-white">{cq.text}</div>
           <div className="p-4 space-y-3">
-            {cq.options.map((opt, index) => (
-              <div key={opt.id} className="flex items-center gap-3">
-                <span className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm font-semibold">
-                  {index + 1}
-                </span>
-                <button
-                  disabled={answered}
-                  onClick={() => setSelectedOption(opt.id)}
-                  className={cn(
-                    "flex-1 rounded-lg border px-4 py-3 text-left transition-colors",
-                    "bg-background hover:bg-gray-50",
-                    selectedOption === opt.id && !answered && "border-[#5a66d1] ring-2 ring-[#5a66d1]/30",
-                  )}
-                >
-                  <span className="font-medium">{opt.text}</span>
-                  {answered && (
-                    <div className="mt-2">
-                      <ResultsBar
-                        value={opt.votes}
-                        total={cq.options.reduce((a, b) => a + b.votes, 0)}
-                        highlight={answeredOptionId === opt.id}
-                      />
+            {cq.options.map((opt, index) => {
+              const totalVotes = cq.options.reduce((a, b) => a + b.votes, 0)
+              const percentage = totalVotes > 0 ? Math.round((opt.votes / totalVotes) * 100) : 0
+              const isCorrect = opt.isCorrect
+              const isStudentAnswer = answeredOptionId === opt.id
+              
+              // Determine colors for answered state
+              const optionTextColor = answered && percentage === 0 ? "#1f2937" : "white"
+              const percentageTextColor = answered && percentage === 0 ? "#1f2937" : (percentage === 100 ? "white" : "#1f2937")
+              
+              return (
+                <div key={opt.id} className="transform transition-all duration-300 hover:scale-[1.01]">
+                  <button
+                    disabled={answered}
+                    onClick={() => setSelectedOption(opt.id)}
+                    className={cn(
+                      "w-full rounded-lg border px-4 py-3 text-left transition-all duration-200 flex items-center gap-3 group",
+                      !answered && selectedOption === opt.id && "border-[#5a66d1] bg-white text-black",
+                      !answered && selectedOption !== opt.id && "bg-gray-100 border-gray-200 hover:border-[#5a66d1] hover:bg-white",
+                      answered && "cursor-default shadow-sm hover:shadow-md border-0"
+                    )}
+                    style={answered ? {
+                      background: `linear-gradient(90deg, ${isStudentAnswer ? brand.purple : "#9ca3af"} ${percentage}%, #f3f4f6 ${percentage}%)`,
+                      border: `2px solid ${isCorrect ? brand.purple : "#9ca3af"}`,
+                      transition: "background 1s ease-out"
+                    } : {}}
+                  >
+                    <span className={cn(
+                      "w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0 transition-all duration-200",
+                      !answered && selectedOption === opt.id && "bg-[#5a66d1] text-white",
+                      !answered && selectedOption !== opt.id && "bg-gray-200 text-gray-700 group-hover:bg-[#5a66d1] group-hover:text-white",
+                      answered && "bg-white text-gray-700 transition-transform duration-200 hover:scale-105"
+                    )}>
+                      {index + 1}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      {!answered ? (
+                        <span className="font-medium">{opt.text}</span>
+                      ) : (
+                        <div className="flex items-center justify-between">
+                          <span 
+                            className="font-medium transition-colors duration-300"
+                            style={{ color: optionTextColor }}
+                          >
+                            {opt.text}
+                          </span>
+                          <span 
+                            className="text-sm font-medium ml-2 flex-shrink-0 transition-colors duration-300"
+                            style={{ color: percentageTextColor }}
+                          >
+                            {percentage}%
+                          </span>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </button>
-              </div>
-            ))}
-            {answered ? (
-              <p className="text-center text-sm text-muted-foreground">Wait for the teacher to ask a new question..</p>
-            ) : null}
+                  </button>
+                </div>
+              )
+            })}
           </div>
         </div>
-        {/* MOVED ELEMENT START HERE */}
           {answered ? (
             // Updated classes: text-black for color, font-bold for bold text.
             <p className="text-center text-sm text-black font-bold mt-4">Wait for the teacher to ask a new question..</p>
@@ -255,7 +288,7 @@ export default function StudentPage() {
               disabled={!selectedOption}
               onClick={submit}
               className={cn(
-                "h-11 px-6 rounded-full text-white font-semibold",
+                "h-11 px-6 rounded-full text-white font-semibold transition-all duration-200 hover:opacity-90 hover:scale-105 transform",
                 !selectedOption && "opacity-50 cursor-not-allowed",
               )}
               style={{ background: `linear-gradient(90deg, ${brand.purple}, ${brand.purpleDark})` }}
@@ -320,15 +353,14 @@ function Loader() {
 function ResultsBar({ value, total, highlight }: { value: number; total: number; highlight?: boolean }) {
   const pct = total > 0 ? Math.round((value / total) * 100) : 0
   return (
-    <div className="w-full h-8 rounded-lg bg-muted relative overflow-hidden">
+    <div className="w-full h-6 rounded bg-white/30 relative overflow-hidden">
       <div
-        className="h-full transition-[width] duration-500 ease-out"
+        className="h-full transition-[width] duration-500 ease-out bg-white/50"
         style={{
           width: `${pct}%`,
-          background: highlight ? "#5a66d1" : "#8f64e1",
         }}
       />
-      <span className="absolute inset-0 flex items-center justify-end pr-2 text-sm font-medium">{pct}%</span>
+      <span className="absolute inset-0 flex items-center justify-end pr-2 text-sm font-medium text-white">{pct}%</span>
     </div>
   )
 }
